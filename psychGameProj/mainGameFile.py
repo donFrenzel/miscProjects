@@ -58,10 +58,14 @@ class game1:
         self.text_font = pygame.font.SysFont('Console', 16)
 
         ### Define player obj
-        box=pygame.Rect(150,150,35,35)
+        box=pygame.Rect(125,125,35,35)
         held=False
         boxOffsetX=0
         boxOffsetY=0
+
+        ### Define barriers object instance
+        wallUpper=pygame.Rect(325,0,100,350)
+        walls=[wallUpper]
 
         running = True
         while running:
@@ -72,8 +76,7 @@ class game1:
                 if event.type == pygame.QUIT:
                     running = False 
                     
-                # Handle mouse events
-                
+                ### Handle mouse events
                 elif event.type == pygame.MOUSEBUTTONDOWN: ###If any mouse buttons are clicked/pressed.
                     ### If mouse button down
                     if event.button == 1:
@@ -102,15 +105,46 @@ class game1:
                     #### Drag the box with the miuse
                     if self.mouseDown and held==True:
                         mouseX,mouseY=pygame.mouse.get_pos()
-                        box.x=mouseX+boxOffsetX
-                        box.y=mouseY+boxOffsetY
-                        box.clamp_ip(screenRect)
+                        targetX=mouseX+boxOffsetX
+                        targetY=mouseY+boxOffsetY
                         
+
+                        
+                        ### Add extra box collision here
+                        ### Collision for X Axis with any barriers
+                        changeX=targetX-box.x
+                        box.x=targetX
+                        for wall in walls:
+                            if box.colliderect(wall):
+                                if changeX>0:
+                                    box.right=wall.left
+                                if changeX<0:
+                                    box.left=wall.right
+
+                        ### Collision for Y Axis with any barriers
+                        changeY=targetY-box.y
+                        box.y=targetY
+                        for wall in walls:
+                            if box.colliderect(wall):
+                                if changeY>0:
+                                    box.bottom=wall.top
+                                if changeY<0:
+                                    box.top=wall.bottom
+                        ###Keeps it from going beyond the walls
+                        box.clamp_ip(screenRect)
+
+            
+                ### Check if the mouse button has moved up      
                 elif event.type == pygame.MOUSEBUTTONUP:
                     self.mouse_down = False
                     held=False
+                ###
+            ###Since not in events, needs to be here
             
             ###redraw the rectangle in its new position frame by frame and updat time and speeds, etc. 
+            for wall in walls:
+                pygame.draw.rect(self.screen,(100,0,100),wall)
+                
             pygame.draw.rect(self.screen,(255, 0, 0),box)
             pygame.display.flip()
             clock.tick(self.fps)
